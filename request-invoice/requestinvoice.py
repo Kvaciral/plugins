@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from flask import Flask
+from flask import Flask, request
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from pathlib import Path
@@ -35,6 +35,25 @@ def getinvoice(amount, description):
     invoice = plugin.rpc.invoice(int(amount)*1000, label, description)
     return invoice
 
+@limiter.limit("20 per minute")
+@app.route('/payRequest')
+def getinvoiceLNUrl():
+    global plugin
+    amount = int(request.args.get('amount'))
+    label = "ln-getinvoice-{}".format(uuid.uuid4())
+
+    description = request.args.get('comment')
+
+    if description is None:
+        description = ""
+    else:
+        description = description[:640]
+
+    invoice = plugin.rpc.invoice(amount, label, description)
+
+    return {'pr': invoice['bolt11'], 'routes': []}
+
+    
 def worker(address, port):
     asyncio.set_event_loop(asyncio.new_event_loop())
 
