@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from flask import Flask, request
+from flask import Flask
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from pathlib import Path
@@ -11,12 +11,9 @@ from tornado.wsgi import WSGIContainer
 
 
 import asyncio
-import hashlib
 import os
 import threading
 import uuid
-
-METADATA = "[[\"text/identifier\",\"kvaciral@x0f.org\"],[\"text/plain\",\"Satoshis to kvaciral@x0f.org.\"]]"
 
 plugin = Plugin()
 app = Flask(__name__)
@@ -38,21 +35,7 @@ def getinvoice(amount, description):
     invoice = plugin.rpc.invoice(int(amount)*1000, label, description)
     return invoice
 
-@limiter.limit("20 per minute")
-@app.route('/payRequest')
-def getinvoiceLNUrl():
-    global plugin
-    amount = int(request.args.get('amount'))
-    label = "ln-getinvoice-{}".format(uuid.uuid4())
-
-    description_hash = hashlib.sha256(METADATA.encode()).hexdigest()
-
-    invoice = plugin.rpc.invoice(amount, label, "", description_hash=description_hash)
-
-    return {'pr': invoice['bolt11'], 'routes': []}
-
-
-def worker(address, port):
+def worker(port):
     asyncio.set_event_loop(asyncio.new_event_loop())
 
     print('Starting server on port {port}'.format(
@@ -63,16 +46,16 @@ def worker(address, port):
         default=uuid.uuid4())
 
     http_server = HTTPServer(WSGIContainer(app))
-    http_server.listen(port, address)
+    http_server.listen(port)
     IOLoop.instance().start()
 
 
-def start_server(address, port):
+def start_server(port):
     if port in jobs:
         raise ValueError("server already running on port {port}".format(port=port))
 
     p = threading.Thread(
-        target=worker, args=(address, port), daemon=True)
+        target=worker, args=(port,), daemon=True)
 
     jobs[port] = p
     p.start()
@@ -96,9 +79,8 @@ def invoiceserver(request, command="start"):
     The plugin takes one of the following commands:
     {start/stop/status/restart}.
     """
-    commands = {"start", "stop", "status", "restart"}
-    address = plugin.address
-    port = plugin.port
+    commands = {"start", "stop", "status","restart"}
+    port = os.getenv("FLASKPORT", default = 8809)
 
     # if command unknown make start our default command
     if command not in commands:
@@ -106,7 +88,7 @@ def invoiceserver(request, command="start"):
 
     if command == "start":
         try:
-            start_server(address, port)
+            start_server(port)
             return "Invoice server started successfully on port {}".format(port)
         except Exception as e:
             return "Error starting server on port {port}: {e}".format(
@@ -130,29 +112,14 @@ def invoiceserver(request, command="start"):
 
     if command == "restart":
         stop_server(port)
-        start_server(address, port)
+        start_server(port)
         return "Invoice server restarted"
 
 
 @plugin.init()
 def init(options, configuration, plugin):
-    plugin.address = options["requestinvoice-addr"]
-    plugin.port = int(options["requestinvoice-port"])
-
-    start_server(plugin.address, plugin.port)
-
-
-plugin.add_option(
-    "requestinvoice-addr",
-    "127.0.0.1",
-    "Manually set the address to be used for the requestinvoice-plugin, default is 127.0.0.1"
-)
-
-plugin.add_option(
-    "requestinvoice-port",
-    "8809",
-    "Manually set the port to be used for the requestinvoice-plugin, default is 8809"
-)
+    port = os.getenv("REQUEST_INVOICE_PORT", default = 8809)
+    start_server(port)
 
 
 plugin.run()
