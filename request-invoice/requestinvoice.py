@@ -16,7 +16,7 @@ import os
 import threading
 import uuid
 
-METADATA = "[[\"text/identifier\",\"orionwl@x0f.org\"],[\"text/plain\",\"Satoshis to orionwl@x0f.org.\"]]"
+METADATA = "[[\"text/identifier\",\"kvaciral@x0f.org\"],[\"text/plain\",\"Satoshis to kvaciral@x0f.org.\"]]"
 
 plugin = Plugin()
 app = Flask(__name__)
