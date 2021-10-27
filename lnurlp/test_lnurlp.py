@@ -13,12 +13,6 @@ def test_lnurlp_starts(node_factory):
     tempmeta.seek(0)
 
     l1 = node_factory.get_node()
-    # Test dynamically
-    l1.rpc.plugin_start(plugin_path)
-    l1.rpc.plugin_stop(plugin_path)
-    l1.rpc.plugin_start(plugin_path)
-    l1.stop()
-    # Then statically
     l1.daemon.opts["plugin"] = plugin_path
     l1.daemon.opts["lnurlp-meta-path"] = tempmeta.name
     l1.start()
