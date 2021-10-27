@@ -1,4 +1,4 @@
-# Http Invoice Request Server plugin
+# Http lnurlp plugin
 
 
 This plugin starts a minimal, rate limited HTTP Server and returns a invoice on the following GET request:
@@ -18,22 +18,22 @@ The json invoice can be used by other services, for example a service for tippin
 Exposing the url using Onion routing is easy. Install tor and 
 add the service to `/etc/tor/torrc`
 ```
-HiddenServiceDir /home/bitcoin/tor/request-invoice-service_v2/
+HiddenServiceDir /home/bitcoin/tor/lnurlp_service_v2/
 HiddenServicePort 80 127.0.0.1:8806
 
 ```
 and restart tor to create the url
 ```
 $ systemctl stop tor && systemctl start tor
-$ cat /home/bitcoin/tor/request-invoice-service_v2/hostname
+$ cat /home/bitcoin/tor/lnurlp-service_v2/hostname
 fkfuvjrbj6cfqppq6xcgfwmp4p23wq2unzlnqmdi6ibqtg2aq7thp2qd.onion
 ```
 
 Use tor browser to visit the url and create a invoice (and make a donation?).
-http://fkfuvjrbj6cfqppq6xcgfwmp4p23wq2unzlnqmdi6ibqtg2aq7thp2qd.onion/invoice/1000/donation
+http://fkfuvjrbj6cfqppq6xcgfwmp4p23wq2unzlnqmdi6ibqtg2aq7thp2qd.onion/payRequest?amount=...
 
 ##### Configuration
-You can enter the path to the webserver's JSON-file (/home/www/host/.well-knwon/lnurlp/jsonfile) for metadata-extraction:
+You can enter the path to the webserver's JSON-file (/home/www/host/.well-known/lnurlp/jsonfile) for metadata-extraction:
 
 - `--lnurlp-meta-path=...`
 

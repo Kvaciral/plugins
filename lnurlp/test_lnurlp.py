@@ -7,7 +7,6 @@ plugin_path = os.path.join(os.path.dirname(__file__), "lnurlp.py")
 
 
 def test_lnurlp_starts(node_factory):
-    print("wtf")
     l1 = node_factory.get_node()
     # Test dynamically
     l1.rpc.plugin_start(plugin_path)
