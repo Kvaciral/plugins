@@ -32,10 +32,10 @@ jobs = {}
 # two per minute because Zebedee has a bug where it does two requests within a
 # few seconds
 @app.route('/payRequest')
-def getinvoiceLNUrl():
+def payRequestUrl():
     global plugin
     amount = int(request.args.get('amount'))
-    label = "ln-getinvoice-{}".format(uuid.uuid4())
+    label = "ln-lnurlp-{}".format(uuid.uuid4())
 
     invoice = plugin.rpc.invoice(amount, label, "", description_hash=plugin.description_hash)
 

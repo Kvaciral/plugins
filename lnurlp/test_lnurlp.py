@@ -12,10 +12,7 @@ def test_lnurlp_starts(node_factory):
     tempmeta.write(b'{"metadata":"justfortestingpurposes"}')
     tempmeta.seek(0)
 
-    l1 = node_factory.get_node()
-    l1.daemon.opts["plugin"] = plugin_path
-    l1.daemon.opts["lnurlp-meta-path"] = tempmeta.name
-    l1.start()
+    l1 = node_factory.get_node(options={"plugin": plugin_path, "lnurlp-meta-path": tempmeta.name})
 
     l1.daemon.logsearch_start = 0
     l1.daemon.wait_for_log(r'Starting server on port 8806')
@@ -27,8 +24,7 @@ def test_lnurlp_starts(node_factory):
 
     # returned valid  invoice?
     b = r.json()
-    assert(b['pr'][:9] == "lnbcrt123")
-
+    assert(b['pr'].startswith("lnbcrt123"))
 
     # test rate-limit
     for i in range(0,20):
