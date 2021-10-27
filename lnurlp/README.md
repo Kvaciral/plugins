@@ -39,5 +39,5 @@ You can enter the path to the webserver's JSON-file (/home/www/host/.well-knwon/
 
 (optional) You can initialize the plugin with a specific port and address:
 
-- `--requestinvoice-address=... (default 127.0.0.1)`
-- `--requestinvoice-port=... (default 8809)`
+- `--lnurlp-address=... (default 127.0.0.1)`
+- `--lnurlp-port=... (default 8806)`
