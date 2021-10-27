@@ -37,9 +37,7 @@ def getinvoiceLNUrl():
     amount = int(request.args.get('amount'))
     label = "ln-getinvoice-{}".format(uuid.uuid4())
 
-    description_hash = hashlib.sha256(metadata).hexdigest()
-
-    invoice = plugin.rpc.invoice(amount, label, "", description_hash=description_hash)
+    invoice = plugin.rpc.invoice(amount, label, "", description_hash=plugin.description_hash)
 
     return {'pr': invoice['bolt11'], 'routes': []}
 
@@ -72,11 +70,18 @@ def start_server(address, port):
 
 @plugin.init()
 def init(options, configuration, plugin):
-    global metadata
-
     plugin.address = options["lnurlp-addr"]
     plugin.port = int(options["lnurlp-port"])
-    metadata = json.load(open(options["lnurlp-meta-path"], 'r'))['metadata'].encode()
+
+    try:
+        with open(options["lnurlp-meta-path"], 'r') as f:
+            metadata = json.load(f)['metadata'].encode()
+            plugin.description_hash = hashlib.sha256(metadata).hexdigest()
+    except FileNotFoundError:
+        if options["lnurlp-meta-path"] == "":
+            raise Exception("Please add a path to the webserver's json with --lnurlp-meta-path=...")
+        else:
+            raise Exception("File not found!")
 
     start_server(plugin.address, plugin.port)
 
