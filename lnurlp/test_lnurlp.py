@@ -2,11 +2,16 @@ import os
 from pyln.testing.fixtures import *  # noqa: F401,F403
 import requests
 from subprocess import check_output
+import tempfile
 
 plugin_path = os.path.join(os.path.dirname(__file__), "lnurlp.py")
 
 
 def test_lnurlp_starts(node_factory):
+    tempmeta = tempfile.NamedTemporaryFile()
+    tempmeta.write(b'{"metadata":"justfortestingpurposes"}')
+    tempmeta.seek(0)
+
     l1 = node_factory.get_node()
     # Test dynamically
     l1.rpc.plugin_start(plugin_path)
@@ -15,6 +20,7 @@ def test_lnurlp_starts(node_factory):
     l1.stop()
     # Then statically
     l1.daemon.opts["plugin"] = plugin_path
+    l1.daemon.opts["lnurlp-meta-path"] = tempmeta.name
     l1.start()
 
     l1.daemon.logsearch_start = 0
@@ -27,7 +33,7 @@ def test_lnurlp_starts(node_factory):
 
     # returned valid  invoice?
     b = r.json()
-    assert(b['pr'][:8] == "lnbcrt10")
+    assert(b['pr'][:9] == "lnbcrt123")
 
 
     # test rate-limit
@@ -35,3 +41,5 @@ def test_lnurlp_starts(node_factory):
         r = requests.get('http://localhost:8806/payRequest?amount=123')
     assert(r.status_code == 429)
     assert("429 Too Many Requests" in r.text )
+
+    tempmeta.close()
